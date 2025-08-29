@@ -50,7 +50,7 @@ def create_table():
     #     OWNER to postgres;
     
 def insert_data(cur, table_name, df):
-    insert_query = sql.SQL(f"INSERT INTO {table_name} (s1, sta_time, status, code_number, birthdate, gender, uid, uname, phone, address, c1, c2) VALUES %s").format(
+    insert_query = sql.SQL(f"INSERT INTO {table_name} (s1, sta_time, status, code_number, uid, uname, phone, address, c1, c2) VALUES %s").format(
         sql.Identifier(table_name)
     )
     values = [tuple(x) for x in df.values]
@@ -74,8 +74,8 @@ def load_excel_to_postgresql(file, chunk_size=1000):
     try:
         xls = pd.ExcelFile(file)
         for sheet_name in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=sheet_name, usecols='A:L', engine='openpyxl')
-            print(len(df))
+            df = pd.read_excel(xls, sheet_name=sheet_name, usecols='A:J', engine='openpyxl')
+            # print(len(df))
             # chunk_range = range(0, len(df), chunk_size)
 
             # for i in chunk_range:
@@ -86,6 +86,7 @@ def load_excel_to_postgresql(file, chunk_size=1000):
                 with conn.cursor() as cur:
                     insert_data(cur, "citizens", df_chunk)
                     conn.commit()
+        print(f"Processed {file} successfully")
     except Exception as e:
         conn.rollback()
         print(f"Error processing {file}: {e}")
@@ -94,18 +95,19 @@ def load_excel_to_postgresql(file, chunk_size=1000):
         conn.close()
 
 def main():
+    load_excel_to_postgresql("/home/joshua/Downloads/data/others/others/1/公安千万四要素/户籍数据1.03GB公安专用/1 - 副本 (32).xlsx")
     # Load data from Excel files to PostgreSQL
-    directory_path = '/excel_path'
+    # directory_path = '/home/joshua/Downloads/data/others/others/1/公安千万四要素/户籍数据1.03GB公安专用'
 
-    files = get_excel_files(directory_path)
+    # files = get_excel_files(directory_path)
 
-    print(f"files = {len(files)}")
+    # print(f"files = {len(files)}")
 
-    with ProcessPoolExecutor() as executor:
-    # Map the process_file function to the list of excel_files
-        for i, file in enumerate(files):
-            print(f"i = {i}, file = {file}")
-            executor.submit(load_excel_to_postgresql, file, chunk_size=1000)
+    # with ProcessPoolExecutor() as executor:
+    # # Map the process_file function to the list of excel_files
+    #     for i, file in enumerate(files):
+    #         print(f"i = {i}, file = {file}")
+    #         executor.submit(load_excel_to_postgresql, file, chunk_size=1000)
 
 
 if __name__ == "__main__":
